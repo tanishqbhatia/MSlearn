@@ -3,6 +3,7 @@ package com.rudrai.mslearn.activities;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
@@ -13,7 +14,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.pixplicity.easyprefs.library.Prefs;
+import com.rudrai.mslearn.App;
 import com.rudrai.mslearn.R;
+import com.rudrai.mslearn.models.Register;
+import com.rudrai.mslearn.utils.Cons;
 import com.rudrai.mslearn.utils.RequestHandler;
 
 import org.json.JSONException;
@@ -23,6 +28,10 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import javax.xml.transform.Result;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -48,10 +57,10 @@ public class RegisterActivity extends AppCompatActivity {
                 String email = emailTet.getText().toString();
                 String password = passwordTet.getText().toString();
                 String confirmPassword = confirmPasswordTet.getText().toString();
-                if(password.equals(confirmPassword)) {
-                    if(name.length() > 2) {
-                        if(email.length() > 5) {
-                            new Register(name, email, password).execute();
+                if (password.equals(confirmPassword)) {
+                    if (name.length() > 2) {
+                        if (email.length() > 5) {
+                            register(name, email, password);
                         } else {
                             Toast.makeText(RegisterActivity.this, "Invalid email address.", Toast.LENGTH_SHORT).show();
                             emailTil.setError("Invalid email address.");
@@ -69,6 +78,35 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    private void register(String name, String email, String password) {
+        final ProgressDialog loading;
+        loading = ProgressDialog.show(context, "Just a sec", "Registration in progress. ", false, false);
+        App.getServer().register(name, email, password).enqueue(new Callback<com.rudrai.mslearn.models.Register>() {
+            @Override
+            public void onResponse(Call<com.rudrai.mslearn.models.Register> call, Response<com.rudrai.mslearn.models.Register> response) {
+                loading.dismiss();
+                if(response.isSuccessful()) {
+                    if(response.body().getError() == Boolean.FALSE) {
+                        Prefs.putBoolean(Cons.REGISTERED, true);
+                        Prefs.putString(Cons.UID, response.body().getUid());
+                        Intent intent = new Intent(context, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.rudrai.mslearn.models.Register> call, Throwable t) {
+                loading.dismiss();
+                Log.e(RegisterActivity.class.getSimpleName(), t.getMessage());
+            }
+        });
+
+    }
+
     private void findViews() {
         nameTil = findViewById(R.id.nameTil);
         nameTet = findViewById(R.id.nameTet);
@@ -79,68 +117,5 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPasswordTil = findViewById(R.id.confirmPasswordTil);
         confirmPasswordTet = findViewById(R.id.confirmPasswordTet);
         registerBtn = findViewById(R.id.registerBtn);
-    }
-
-    private static class Register extends AsyncTask<Void, Void, String>{
-        private ProgressDialog loading;
-        private String name, email, password;
-        Register(String name, String email, String password) {
-            this.name = name;
-            this.email = email;
-            this.password = password;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            loading = ProgressDialog.show(context, "Please wait...", "Loading", false, false);
-        }
-
-        @Override
-        protected String doInBackground(Void... voids) {
-            RequestHandler rh = new RequestHandler() {
-                public boolean canHandleRequest(DownloadManager.Request data) {
-                    return false;
-                }
-                public Result load(DownloadManager.Request request, int networkPolicy) throws IOException {
-                    return null;
-                }
-            };
-            HashMap<String, String> param = new HashMap<String, String>();
-            param.put("phone", "8888888888");
-            param.put("token", "1234567890");
-
-            String result = rh.sendPostRequest("\n" +
-                    "GIVEN_API", param);
-            Log.i("result", result);
-            return result;
-        }
-
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            Log.i("stauts", s);
-            String status = null;
-            try {
-                JSONObject mainObject = new JSONObject(s);
-                status = mainObject.getString("status");
-
-                Log.i("output", status);
-                if(status.equals("true")){
-                    Toast.makeText(context," successfully",Toast.LENGTH_SHORT).show();
-
-                }else {
-                    Toast.makeText(context,"Please try again",Toast.LENGTH_SHORT).show();
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
-            loading.dismiss();
-
-        }
     }
 }

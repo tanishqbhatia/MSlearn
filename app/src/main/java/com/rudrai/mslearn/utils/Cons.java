@@ -6,5 +6,7 @@ package com.rudrai.mslearn.utils;
  */
 
 public class Cons {
+    public static final String WEBSITE_URL = "http://rudrai.com/mslearn/learnbeta/";
     public static String REGISTERED = "registered";
+    public static String UID = "uid";
 }
