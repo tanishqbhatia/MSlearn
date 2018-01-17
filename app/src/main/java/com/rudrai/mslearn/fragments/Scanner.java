@@ -1,5 +1,6 @@
 package com.rudrai.mslearn.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -10,6 +11,11 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.zxing.Result;
+import com.pixplicity.easyprefs.library.Prefs;
+import com.rudrai.mslearn.activities.MainActivity;
+import com.rudrai.mslearn.activities.RegisterActivity;
+import com.rudrai.mslearn.activities.ResultActivity;
+import com.rudrai.mslearn.utils.Cons;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
@@ -54,7 +60,17 @@ public class Scanner extends Fragment implements ZXingScannerView.ResultHandler 
             result = "mslearn2017_".concat(result);
         }
 
-        Log.i("Result", result);
+        Log.i("ID", result);
+        Log.i("UID", Prefs.getString(Cons.UID, ""));
+
+        String url = "http://rudrai.com/mslearn/qr.php?id=".concat(result).concat("&uid=").concat(Prefs.getString(Cons.UID, ""));
+        sendResult(url);
+    }
+
+    private void sendResult(String result) {
+        Intent intent = new Intent(getActivity(), ResultActivity.class);
+        intent.putExtra("url", result);
+        startActivity(intent);
     }
 
     @Override
