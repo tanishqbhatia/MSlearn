@@ -1,14 +1,12 @@
 package com.rudrai.mslearn.activities;
 
-import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -17,17 +15,7 @@ import android.widget.Toast;
 import com.pixplicity.easyprefs.library.Prefs;
 import com.rudrai.mslearn.App;
 import com.rudrai.mslearn.R;
-import com.rudrai.mslearn.models.Register;
 import com.rudrai.mslearn.utils.Cons;
-import com.rudrai.mslearn.utils.RequestHandler;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.HashMap;
-
-import javax.xml.transform.Result;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,10 +23,10 @@ import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    private static Context context;
     private TextInputEditText nameTet, emailTet, passwordTet, confirmPasswordTet;
     private TextInputLayout nameTil, emailTil, passwordTil, confirmPasswordTil;
-    private Button registerBtn;
-    private static Context context;
+    private Button registerBtn, loginBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +64,17 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             }
         });
+
+        loginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 
     private void register(String name, String email, String password) {
@@ -94,6 +93,8 @@ public class RegisterActivity extends AppCompatActivity {
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
                         finish();
+                    } else {
+                        Toast.makeText(RegisterActivity.this, "Error while registering user, please try again.", Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -117,5 +118,6 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPasswordTil = findViewById(R.id.confirmPasswordTil);
         confirmPasswordTet = findViewById(R.id.confirmPasswordTet);
         registerBtn = findViewById(R.id.registerBtn);
+        loginBtn = findViewById(R.id.loginBtn);
     }
 }
